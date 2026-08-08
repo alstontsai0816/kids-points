@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⭐ 小寶貝集點系統</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --alston:#FF6B35;--alston-l:#FFE8DF;--alston-d:#D94F1A;
+  --kiki:#9B5DE5;--kiki-l:#EFE6FF;--kiki-d:#7A3EC4;
+  --admin:#0F172A;--admin-l:#E2E8F0;
+  --parent:#2563EB;--parent-l:#DBEAFE;
+  --child:#059669;--child-l:#D1FAE5;
+  --bg:#FFF9F0;--card:#fff;--text:#1e1e2e;--muted:#94a3b8;
+  --border:#F0E8DC;--shadow:0 4px 24px rgba(0,0,0,.07);--radius:20px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Nunito',sans-serif;background:var(--bg);min-height:100vh;
+  background-image:radial-gradient(circle at 15% 15%,#FFE8DF,transparent 35%),
+                   radial-gradient(circle at 85% 85%,#EFE6FF,transparent 35%);}
+.page{display:none;min-height:100vh;padding:24px 16px;}
+.page.active{display:block;}
+
+/* Topbar */
+.topbar{max-width:960px;margin:0 auto 28px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.topbar-logo{font-family:'Baloo 2',cursive;font-size:1.4rem;font-weight:800;color:var(--text);}
+.topbar-right{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.role-chip{padding:5px 14px;border-radius:99px;font-size:.78rem;font-weight:800;}
+.role-chip.admin {background:var(--admin-l);color:var(--admin);}
+.role-chip.parent{background:var(--parent-l);color:var(--parent);}
+.role-chip.child {background:var(--child-l);color:var(--child);}
+.tb-btn{padding:7px 16px;border-radius:99px;border:2px solid var(--border);background:#fff;
+  font-family:'Nunito',sans-serif;font-weight:700;font-size:.82rem;color:var(--muted);cursor:pointer;transition:all .15s;}
+.tb-btn:hover{border-color:#9B5DE5;color:#9B5DE5;}
+.tb-btn.danger:hover{border-color:#ef4444;color:#ef4444;}
+
+/* Config banner */
+.config-banner{max-width:520px;margin:0 auto 24px;background:#FEF3C7;border:2px solid #FCD34D;
+  border-radius:16px;padding:18px 20px;font-weight:700;font-size:.88rem;color:#92400E;line-height:1.9;}
+.config-banner code{background:#FDE68A;padding:2px 7px;border-radius:6px;font-family:monospace;font-size:.85rem;}
+.config-banner.hidden{display:none;}
+
+/* Auth */
+.auth-wrap{max-width:420px;margin:48px auto 0;}
+.auth-hero{text-align:center;margin-bottom:32px;}
+.auth-hero h1{font-family:'Baloo 2',cursive;font-size:2.4rem;font-weight:800;color:var(--text);margin-bottom:6px;}
+.auth-hero p{color:var(--muted);font-weight:600;}
+.auth-card{background:var(--card);border-radius:var(--radius);padding:32px 28px;box-shadow:var(--shadow);}
+.auth-tabs{display:flex;margin-bottom:24px;background:#F8F9FF;border-radius:12px;padding:4px;gap:4px;}
+.auth-tab{flex:1;padding:9px;border:none;border-radius:10px;font-family:'Nunito',sans-serif;
+  font-weight:800;font-size:.9rem;cursor:pointer;transition:all .18s;background:transparent;color:var(--muted);}
+.auth-tab.active{background:#fff;color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.08);}
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-weight:700;font-size:.85rem;color:var(--text);margin-bottom:6px;}
+.form-input{width:100%;padding:11px 14px;border-radius:12px;border:2px solid var(--border);
+  font-family:'Nunito',sans-serif;font-size:.95rem;font-weight:600;outline:none;
+  transition:border-color .2s;background:#FAFAFA;color:var(--text);}
+.form-input:focus{border-color:var(--kiki);}
+.form-select{width:100%;padding:11px 14px;border-radius:12px;border:2px solid var(--border);
+  font-family:'Nunito',sans-serif;font-size:.95rem;font-weight:600;outline:none;background:#FAFAFA;color:var(--text);cursor:pointer;}
+.auth-btn{width:100%;padding:13px;border:none;border-radius:14px;font-family:'Nunito',sans-serif;
+  font-size:1rem;font-weight:800;cursor:pointer;
+  background:linear-gradient(135deg,var(--kiki),#F15BB5);color:#fff;margin-top:4px;
+  transition:transform .15s,filter .15s;}
+.auth-btn:hover{transform:scale(1.02);filter:brightness(1.05);}
+.auth-btn:active{transform:scale(.98);}
+.auth-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.auth-err{color:#ef4444;font-size:.82rem;font-weight:700;margin-top:10px;min-height:18px;text-align:center;}
+.auth-ok {color:#22c55e;font-size:.82rem;font-weight:700;margin-top:10px;min-height:18px;text-align:center;}
+
+/* Cards */
+.section-title{font-family:'Baloo 2',cursive;font-size:1.3rem;font-weight:800;color:var(--text);margin-bottom:16px;}
+.cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:960px;margin:0 auto 28px;}
+@media(max-width:600px){.cards-grid{grid-template-columns:1fr;}}
+
+.kid-card{background:var(--card);border-radius:var(--radius);padding:24px 20px;box-shadow:var(--shadow);
+  position:relative;overflow:hidden;border:2px solid transparent;transition:transform .2s,box-shadow .2s;}
+.kid-card:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.11);}
+.kid-card.alston{border-color:var(--alston-l);}
+.kid-card.kiki  {border-color:var(--kiki-l);}
+.kid-card::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;border-radius:var(--radius) var(--radius) 0 0;}
+.kid-card.alston::before{background:linear-gradient(90deg,var(--alston),#FFB347);}
+.kid-card.kiki::before  {background:linear-gradient(90deg,var(--kiki),#F15BB5);}
+.kid-avatar{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin-bottom:10px;}
+.kid-card.alston .kid-avatar{background:var(--alston-l);}
+.kid-card.kiki   .kid-avatar{background:var(--kiki-l);}
+.kid-name{font-family:'Baloo 2',cursive;font-size:1.35rem;font-weight:800;margin-bottom:2px;}
+.kid-card.alston .kid-name{color:var(--alston);}
+.kid-card.kiki   .kid-name{color:var(--kiki);}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:99px;font-size:.75rem;font-weight:800;margin-left:6px;}
+.kid-card.alston .badge{background:var(--alston-l);color:var(--alston-d);}
+.kid-card.kiki   .badge{background:var(--kiki-l);  color:var(--kiki-d);}
+.pts-row{display:flex;align-items:baseline;gap:5px;margin:12px 0 8px;}
+.pts-num{font-family:'Baloo 2',cursive;font-size:3rem;font-weight:800;line-height:1;}
+.kid-card.alston .pts-num{color:var(--alston);}
+.kid-card.kiki   .pts-num{color:var(--kiki);}
+.pts-num.bump{animation:bump .4s cubic-bezier(.34,1.56,.64,1);}
+@keyframes bump{0%{transform:scale(1)}50%{transform:scale(1.28)}100%{transform:scale(1)}}
+.pts-label{font-size:.9rem;color:var(--muted);font-weight:700;}
+.stars-row{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:16px;min-height:26px;}
+.star-icon{font-size:1.1rem;animation:popIn .3s cubic-bezier(.34,1.56,.64,1);}
+@keyframes popIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.controls{display:flex;flex-direction:column;gap:9px;}
+.reason-input{width:100%;padding:9px 13px;border-radius:11px;border:2px solid var(--border);
+  font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:600;outline:none;
+  transition:border-color .2s;background:#FAFAFA;color:var(--text);resize:none;}
+.kid-card.alston .reason-input:focus{border-color:var(--alston);}
+.kid-card.kiki   .reason-input:focus{border-color:var(--kiki);}
+.pt-row{display:flex;gap:8px;align-items:center;}
+.pt-input{width:62px;padding:9px;border-radius:11px;border:2px solid var(--border);
+  font-family:'Baloo 2',cursive;font-size:1rem;font-weight:700;text-align:center;outline:none;background:#FAFAFA;color:var(--text);}
+.btn{flex:1;padding:10px 0;border:none;border-radius:11px;font-family:'Nunito',sans-serif;
+  font-size:.92rem;font-weight:800;cursor:pointer;transition:transform .13s,filter .13s;
+  display:flex;align-items:center;justify-content:center;gap:5px;}
+.btn:hover{transform:scale(1.04);filter:brightness(1.06);}
+.btn:active{transform:scale(.97);}
+.btn-add{background:linear-gradient(135deg,#4ade80,#22c55e);color:#fff;}
+.btn-sub{background:linear-gradient(135deg,#f87171,#ef4444);color:#fff;}
+
+/* History */
+.history-wrap{max-width:960px;margin:0 auto;}
+.history-card{background:var(--card);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);}
+.history-list{display:flex;flex-direction:column;gap:8px;margin-top:12px;max-height:500px;overflow-y:auto;}
+.log-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:13px;font-size:.86rem;font-weight:600;animation:slideIn .3s ease;}
+@keyframes slideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+.log-item.alston-log{background:var(--alston-l);}
+.log-item.kiki-log  {background:var(--kiki-l);}
+.log-left{display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;}
+.log-emo{font-size:1.2rem;}
+.log-giver{font-size:.65rem;font-weight:800;padding:2px 6px;border-radius:99px;white-space:nowrap;}
+.log-giver.parent{background:var(--parent-l);color:var(--parent);}
+.log-giver.admin {background:var(--admin-l); color:var(--admin);}
+.log-body{flex:1;}
+.log-who{font-weight:800;font-size:.88rem;}
+.alston-log .log-who{color:var(--alston-d);}
+.kiki-log   .log-who{color:var(--kiki-d);}
+.log-reason{color:var(--text);margin:2px 0;line-height:1.4;}
+.log-time  {color:var(--muted);font-size:.75rem;}
+.log-delta{font-family:'Baloo 2',cursive;font-size:1.25rem;font-weight:800;flex-shrink:0;}
+.log-delta.pos{color:#22c55e;}
+.log-delta.neg{color:#ef4444;}
+.empty-state{text-align:center;padding:20px;color:var(--muted);font-weight:600;}
+.clear-btn{display:block;margin:14px auto 0;padding:7px 18px;border:2px solid var(--border);
+  border-radius:10px;background:transparent;font-family:'Nunito',sans-serif;
+  font-weight:700;font-size:.82rem;color:var(--muted);cursor:pointer;transition:all .2s;}
+.clear-btn:hover{background:#f8d7da;border-color:#ef4444;color:#ef4444;}
+
+/* Child dashboard */
+.child-hero{max-width:460px;margin:0 auto 28px;text-align:center;background:var(--card);border-radius:var(--radius);padding:32px 24px;box-shadow:var(--shadow);}
+.child-big-avatar{width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:3rem;margin:0 auto 14px;}
+.child-big-name{font-family:'Baloo 2',cursive;font-size:2rem;font-weight:800;margin-bottom:8px;}
+.child-big-pts{font-family:'Baloo 2',cursive;font-size:4.5rem;font-weight:800;line-height:1;}
+.child-stars{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin:12px 0 16px;}
+.child-badge-big{display:inline-block;font-size:.95rem;font-weight:800;padding:7px 18px;border-radius:99px;}
+
+/* Admin */
+.admin-wrap{max-width:960px;margin:0 auto;}
+.admin-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
+@media(max-width:600px){.admin-stats{grid-template-columns:1fr 1fr;}}
+.stat-card{background:var(--card);border-radius:16px;padding:18px;box-shadow:var(--shadow);text-align:center;}
+.stat-num{font-family:'Baloo 2',cursive;font-size:2rem;font-weight:800;}
+.stat-label{font-size:.8rem;font-weight:700;color:var(--muted);margin-top:2px;}
+.user-table{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+.user-table-head{display:grid;grid-template-columns:1fr 120px 120px 70px;padding:12px 18px;
+  background:#F8F9FF;font-size:.8rem;font-weight:800;color:var(--muted);gap:8px;}
+.user-row{display:grid;grid-template-columns:1fr 120px 120px 70px;padding:13px 18px;
+  border-top:1px solid #F0F4F8;gap:8px;align-items:center;transition:background .15s;}
+.user-row:hover{background:#FAFAFA;}
+.user-email{font-weight:700;font-size:.85rem;color:var(--text);word-break:break-all;}
+.user-name-cell{font-weight:600;font-size:.83rem;color:var(--muted);}
+.role-select{padding:5px 8px;border-radius:8px;border:2px solid var(--border);
+  font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:700;outline:none;cursor:pointer;background:#fff;}
+.del-btn{padding:5px 10px;border:2px solid #fecaca;border-radius:8px;background:#fff;
+  font-size:.78rem;font-weight:700;color:#ef4444;cursor:pointer;transition:all .15s;}
+.del-btn:hover{background:#fef2f2;}
+@media(max-width:640px){
+  .user-table-head,.user-row{grid-template-columns:1fr 90px;}
+  .user-table-head>*:nth-child(2),.user-row .user-name-cell,
+  .user-table-head>*:nth-child(4),.user-row .del-btn{display:none;}
+}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:#1e1e2e;color:#fff;padding:10px 22px;border-radius:99px;
+  font-weight:700;font-size:.88rem;z-index:999;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1);pointer-events:none;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* Spinner */
+.spinner-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:16px;}
+.spinner{width:48px;height:48px;border:5px solid var(--kiki-l);border-top-color:var(--kiki);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner-label{font-weight:700;color:var(--muted);font-size:.9rem;}
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="pg-loading" style="display:none"></div>
+</div>
+
+<!-- ══════════ AUTH PAGE ══════════ -->
+<div id="pg-auth" class="page active">
+  <div class="auth-wrap">
+    <div class="auth-hero">
+      <h1>⭐ 集點系統</h1>
+      <p>Alston & Kiki 的專屬獎勵平台</p>
+    </div>
+
+    <div class="config-banner hidden" id="config-banner">
+      ⚠️ <strong>尚未設定 Supabase！</strong><br>
+      請用文字編輯器打開 <code>index.html</code>，<br>
+      找到頂部的 <code>SUPABASE_URL</code> 和 <code>SUPABASE_ANON_KEY</code>，<br>
+      填入你的 Supabase 專案資訊。
+    </div>
+
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchTab('login')">登入</button>
+        <button class="auth-tab" onclick="switchTab('register')">註冊</button>
+      </div>
+
+      <!-- Login -->
+      <div id="form-login">
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input class="form-input" id="login-email" type="email" placeholder="your@email.com" autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label class="form-label">密碼</label>
+          <input class="form-input" id="login-pw" type="password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <button class="auth-btn" id="login-btn" onclick="doLogin()">登入</button>
+        <div class="auth-err" id="login-err"></div>
+      </div>
+
+      <!-- Register -->
+      <div id="form-register" style="display:none">
+        <div class="form-group">
+          <label class="form-label">顯示名稱</label>
+          <input class="form-input" id="reg-name" type="text" placeholder="例如：Alston">
+        </div>
+        <div class="form-group">
+          <label class="form-label">身份</label>
+          <select class="form-select" id="reg-role" onchange="onRoleChange()">
+            <option value="child">小孩 🧒</option>
+            <option value="parent">家長 👨‍👩‍👧</option>
+          </select>
+        </div>
+        <div class="form-group" id="reg-kid-group">
+          <label class="form-label">我是哪個小孩？</label>
+          <select class="form-select" id="reg-kid">
+            <option value="alston">Alston 🚀</option>
+            <option value="kiki">Kiki 🌸</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input class="form-input" id="reg-email" type="email" placeholder="your@email.com" autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label class="form-label">密碼（至少 6 位）</label>
+          <input class="form-input" id="reg-pw" type="password" placeholder="••••••••" autocomplete="new-password">
+        </div>
+        <button class="auth-btn" id="reg-btn" onclick="doRegister()">建立帳號</button>
+        <div class="auth-err" id="reg-err"></div>
+        <div class="auth-ok"  id="reg-ok"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ PARENT DASHBOARD ══════════ -->
+<div id="pg-parent" class="page">
+  <div class="topbar">
+    <span class="topbar-logo">⭐ 集點系統</span>
+    <div class="topbar-right">
+      <span class="role-chip parent" id="parent-chip">👋 家長</span>
+      <button class="tb-btn danger" onclick="doLogout()">登出</button>
+    </div>
+  </div>
+  <div class="cards-grid">
+    <div class="kid-card alston">
+      <div class="kid-avatar">🚀</div>
+      <div class="kid-name">Alston <span class="badge" id="badge-alston">🌱</span></div>
+      <div class="pts-row"><div class="pts-num" id="pts-alston">0</div><div class="pts-label">點</div></div>
+      <div class="stars-row" id="stars-alston"></div>
+      <div class="controls">
+        <textarea class="reason-input" id="reason-alston" rows="2" placeholder="備注：因為什麼表現？✏️"></textarea>
+        <div class="pt-row">
+          <input class="pt-input" id="amt-alston" type="number" value="1" min="1" max="99">
+          <button class="btn btn-add" onclick="addPts('alston',1)">➕ 加點</button>
+          <button class="btn btn-sub" onclick="addPts('alston',-1)">➖ 減點</button>
+        </div>
+      </div>
+    </div>
+    <div class="kid-card kiki">
+      <div class="kid-avatar">🌸</div>
+      <div class="kid-name">Kiki <span class="badge" id="badge-kiki">🌱</span></div>
+      <div class="pts-row"><div class="pts-num" id="pts-kiki">0</div><div class="pts-label">點</div></div>
+      <div class="stars-row" id="stars-kiki"></div>
+      <div class="controls">
+        <textarea class="reason-input" id="reason-kiki" rows="2" placeholder="備注：因為什麼表現？✏️"></textarea>
+        <div class="pt-row">
+          <input class="pt-input" id="amt-kiki" type="number" value="1" min="1" max="99">
+          <button class="btn btn-add" onclick="addPts('kiki',1)">➕ 加點</button>
+          <button class="btn btn-sub" onclick="addPts('kiki',-1)">➖ 減點</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="history-wrap">
+    <div class="history-card">
+      <div class="section-title">📋 紀錄歷史</div>
+      <div class="history-list" id="parent-history"><div class="empty-state">載入中…</div></div>
+      <button class="clear-btn" onclick="clearLogs()">🗑 清除所有紀錄</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ CHILD DASHBOARD ══════════ -->
+<div id="pg-child" class="page">
+  <div class="topbar">
+    <span class="topbar-logo">⭐ 集點系統</span>
+    <div class="topbar-right">
+      <span class="role-chip child" id="child-chip">👋 小孩</span>
+      <button class="tb-btn danger" onclick="doLogout()">登出</button>
+    </div>
+  </div>
+  <div class="child-hero">
+    <div class="child-big-avatar" id="child-avatar">🚀</div>
+    <div class="child-big-name"   id="child-name">Alston</div>
+    <div class="pts-row" style="justify-content:center;margin:14px 0 4px;">
+      <div class="child-big-pts" id="child-pts">0</div>
+      <div class="pts-label" style="font-size:1.2rem;margin-left:6px;">點</div>
+    </div>
+    <div class="child-stars" id="child-stars"></div>
+    <div class="child-badge-big" id="child-badge">🌱 新手</div>
+  </div>
+  <div class="history-wrap">
+    <div class="history-card">
+      <div class="section-title">📋 我的紀錄</div>
+      <div class="history-list" id="child-history"><div class="empty-state">載入中…</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ ADMIN DASHBOARD ══════════ -->
+<div id="pg-admin" class="page">
+  <div class="topbar">
+    <span class="topbar-logo">⭐ 集點系統</span>
+    <div class="topbar-right">
+      <span class="role-chip admin">👑 管理員</span>
+      <button class="tb-btn" onclick="showPage('pg-parent')">家長視圖</button>
+      <button class="tb-btn danger" onclick="doLogout()">登出</button>
+    </div>
+  </div>
+  <div class="admin-wrap">
+    <div class="section-title">👑 管理員後台</div>
+    <div class="admin-stats">
+      <div class="stat-card"><div class="stat-num" id="stat-users">—</div><div class="stat-label">總使用者</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-alston" style="color:var(--alston)">—</div><div class="stat-label">Alston 點數</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-kiki"   style="color:var(--kiki)">—</div><div class="stat-label">Kiki 點數</div></div>
+    </div>
+
+    <div class="section-title">🎯 調整點數</div>
+    <div class="cards-grid" style="margin-bottom:28px;">
+      <div class="kid-card alston">
+        <div class="kid-avatar">🚀</div>
+        <div class="kid-name">Alston <span class="badge" id="badge-alston-a">🌱</span></div>
+        <div class="pts-row"><div class="pts-num" id="pts-alston-a">0</div><div class="pts-label">點</div></div>
+        <div class="stars-row" id="stars-alston-a"></div>
+        <div class="controls">
+          <textarea class="reason-input" id="reason-alston-a" rows="2" placeholder="備注：因為什麼表現？✏️"></textarea>
+          <div class="pt-row">
+            <input class="pt-input" id="amt-alston-a" type="number" value="1" min="1" max="99">
+            <button class="btn btn-add" onclick="addPts('alston',1,'a')">➕ 加點</button>
+            <button class="btn btn-sub" onclick="addPts('alston',-1,'a')">➖ 減點</button>
+          </div>
+        </div>
+      </div>
+      <div class="kid-card kiki">
+        <div class="kid-avatar">🌸</div>
+        <div class="kid-name">Kiki <span class="badge" id="badge-kiki-a">🌱</span></div>
+        <div class="pts-row"><div class="pts-num" id="pts-kiki-a">0</div><div class="pts-label">點</div></div>
+        <div class="stars-row" id="stars-kiki-a"></div>
+        <div class="controls">
+          <textarea class="reason-input" id="reason-kiki-a" rows="2" placeholder="備注：因為什麼表現？✏️"></textarea>
+          <div class="pt-row">
+            <input class="pt-input" id="amt-kiki-a" type="number" value="1" min="1" max="99">
+            <button class="btn btn-add" onclick="addPts('kiki',1,'a')">➕ 加點</button>
+            <button class="btn btn-sub" onclick="addPts('kiki',-1,'a')">➖ 減點</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">👥 使用者管理</div>
+    <div class="user-table">
+      <div class="user-table-head">
+        <span>Email</span><span>名稱</span><span>角色</span><span>刪除</span>
+      </div>
+      <div id="user-list"><div class="empty-state" style="padding:16px">載入中…</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════
+//  🔧 設定區 — 只需填這兩個值！
+//  取得方式：supabase.com → 你的專案 → Settings → API
+// ════════════════════════════════════════════
+const SUPABASE_URL      = '貼上你的 Project URL';
+const SUPABASE_ANON_KEY = '貼上你的 anon public key';
+
+// 管理員 Email（第一次用這個 Email 註冊，自動升為 admin）
+const ADMIN_EMAIL = '你的email@gmail.com';
+
+// ════════════════════════════════════════════
+//  State
+// ════════════════════════════════════════════
+let sb           = null;
+let currentUser  = null;
+let currentProfile = null;
+let realtimeChannel = null;
+
+const KIDS = {
+  alston: { emoji:'🚀', name:'Alston', color:'var(--alston)', light:'var(--alston-l)' },
+  kiki:   { emoji:'🌸', name:'Kiki',   color:'var(--kiki)',   light:'var(--kiki-l)'   },
+};
+
+// ════════════════════════════════════════════
+//  Init
+// ════════════════════════════════════════════
+const configReady = SUPABASE_URL !== '貼上你的 Project URL';
+
+// Always show auth page immediately — never leave user on blank spinner
+showPage('pg-auth');
+
+if (!configReady) {
+  document.getElementById('config-banner').classList.remove('hidden');
+} else {
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  initAuth();
+}
+
+async function initAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    await loadProfile(session.user);
+  }
+  // pg-auth is already shown; loadProfile will switch page if session exists
+
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      await loadProfile(session.user);
+    } else if (event === 'SIGNED_OUT') {
+      teardown();
+      showPage('pg-auth');
+    }
+  });
+}
+
+async function loadProfile(user) {
+  currentUser = user;
+
+  // Upsert profile
+  let { data: profile } = await sb.from('profiles').select('*').eq('id', user.id).single();
+
+  if (!profile) {
+    const { data: newProfile } = await sb.from('profiles').insert({
+      id: user.id, email: user.email,
+      name: user.user_metadata?.name || user.email,
+      role: user.email === ADMIN_EMAIL ? 'admin' : 'child',
+      kid: 'alston'
+    }).select().single();
+    profile = newProfile;
+  }
+
+  // Bootstrap admin
+  if (user.email === ADMIN_EMAIL && profile.role !== 'admin') {
+    await sb.from('profiles').update({ role: 'admin' }).eq('id', user.id);
+    profile.role = 'admin';
+  }
+
+  currentProfile = profile;
+  routeToDashboard(profile);
+}
+
+function routeToDashboard(profile) {
+  teardown();
+  if      (profile.role === 'admin')  setupAdmin(profile);
+  else if (profile.role === 'parent') setupParent(profile);
+  else                                setupChild(profile);
+}
+
+// ════════════════════════════════════════════
+//  Auth actions
+// ════════════════════════════════════════════
+function switchTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((t,i) =>
+    t.classList.toggle('active', i===(tab==='login'?0:1)));
+  document.getElementById('form-login').style.display    = tab==='login'?'block':'none';
+  document.getElementById('form-register').style.display = tab==='register'?'block':'none';
+}
+function onRoleChange() {
+  document.getElementById('reg-kid-group').style.display =
+    document.getElementById('reg-role').value === 'child' ? 'block' : 'none';
+}
+
+async function doRegister() {
+  const name  = v('reg-name'), role = v('reg-role'),
+        kid   = v('reg-kid'),  email = v('reg-email'), pw = v('reg-pw');
+  const errEl = document.getElementById('reg-err');
+  const okEl  = document.getElementById('reg-ok');
+  errEl.textContent = ''; okEl.textContent = '';
+  if (!name||!email||!pw) { errEl.textContent='請填寫所有欄位'; return; }
+
+  setLoading('reg-btn', true);
+  const { data, error } = await sb.auth.signUp({
+    email, password: pw,
+    options: { data: { name, role, kid: role==='child'?kid:null } }
+  });
+  setLoading('reg-btn', false);
+
+  if (error) { errEl.textContent = friendlyError(error.message); return; }
+
+  // Create profile immediately (don't wait for email confirm if disabled)
+  if (data.user) {
+    const finalRole = email === ADMIN_EMAIL ? 'admin' : role;
+    await sb.from('profiles').upsert({
+      id: data.user.id, email, name,
+      role: finalRole,
+      kid: role==='child' ? kid : null
+    });
+  }
+  okEl.textContent = '✅ 帳號建立成功！正在登入…';
+}
+
+async function doLogin() {
+  const email = v('login-email'), pw = v('login-pw');
+  const errEl = document.getElementById('login-err');
+  errEl.textContent = '';
+  if (!email||!pw) { errEl.textContent='請填寫 Email 和密碼'; return; }
+
+  setLoading('login-btn', true);
+  const { error } = await sb.auth.signInWithPassword({ email, password: pw });
+  setLoading('login-btn', false);
+
+  if (error) errEl.textContent = friendlyError(error.message);
+}
+
+async function doLogout() {
+  teardown();
+  await sb.auth.signOut();
+}
+
+function friendlyError(msg) {
+  if (msg.includes('Invalid login'))       return '❌ Email 或密碼錯誤';
+  if (msg.includes('already registered'))  return '❌ 此 Email 已被使用';
+  if (msg.includes('Password should be'))  return '❌ 密碼至少需要 6 個字元';
+  if (msg.includes('rate limit'))          return '❌ 嘗試次數過多，請稍後再試';
+  if (msg.includes('email'))               return '❌ Email 格式不正確';
+  return '❌ 發生錯誤：' + msg;
+}
+
+// ════════════════════════════════════════════
+//  Dashboard setup
+// ════════════════════════════════════════════
+function setupParent(profile) {
+  document.getElementById('parent-chip').textContent = `👋 ${profile.name}`;
+  showPage('pg-parent');
+  loadPoints('parent');
+  loadLogs('parent-history', null);
+  subscribeRealtime('parent');
+}
+
+function setupChild(profile) {
+  const kid  = profile.kid || 'alston';
+  const meta = KIDS[kid];
+  document.getElementById('child-chip').textContent       = `👋 ${profile.name}`;
+  document.getElementById('child-avatar').textContent     = meta.emoji;
+  document.getElementById('child-avatar').style.background= meta.light;
+  document.getElementById('child-name').textContent       = meta.name;
+  document.getElementById('child-name').style.color       = meta.color;
+  document.getElementById('child-pts').style.color        = meta.color;
+  document.getElementById('child-badge').style.background = meta.light;
+  document.getElementById('child-badge').style.color      = meta.color;
+  showPage('pg-child');
+  loadChildPoints(kid);
+  loadLogs('child-history', kid);
+  subscribeRealtime('child', kid);
+}
+
+function setupAdmin(profile) {
+  showPage('pg-admin');
+  loadPoints('admin');
+  loadUsers();
+  subscribeRealtime('admin');
+}
+
+// ════════════════════════════════════════════
+//  Data loading
+// ════════════════════════════════════════════
+async function loadPoints(view) {
+  const { data } = await sb.from('points').select('*');
+  if (!data) return;
+  const pts = {};
+  data.forEach(r => pts[r.kid] = r.total || 0);
+  renderPointsView(view, pts);
+}
+
+async function loadChildPoints(kid) {
+  const { data } = await sb.from('points').select('total').eq('kid', kid).single();
+  const pts = data?.total || 0;
+  document.getElementById('child-pts').textContent   = pts;
+  document.getElementById('child-badge').textContent = getBadge(pts);
+  renderStars(document.getElementById('child-stars'), pts);
+}
+
+function renderPointsView(view, pts) {
+  ['alston','kiki'].forEach(kid => {
+    const sfx   = view==='admin' ? '-a' : '';
+    const total = pts[kid] || 0;
+    setEl(`pts-${kid}${sfx}`,    total);
+    setEl(`badge-${kid}${sfx}`,  getBadge(total));
+    renderStars(document.getElementById(`stars-${kid}${sfx}`), total);
+    if (view==='admin') setEl(`stat-${kid}`, total);
+  });
+}
+
+async function loadLogs(containerId, filterKid) {
+  let q = sb.from('logs').select('*').order('created_at', { ascending:false }).limit(80);
+  if (filterKid) q = q.eq('kid', filterKid);
+  const { data } = await q;
+  renderLogs(containerId, data || []);
+}
+
+async function loadUsers() {
+  const { data } = await sb.from('profiles').select('*').order('created_at');
+  if (!data) return;
+  setEl('stat-users', data.length);
+  const list = document.getElementById('user-list');
+  if (!list) return;
+  if (!data.length) { list.innerHTML='<div class="empty-state" style="padding:16px">暫無使用者</div>'; return; }
+  list.innerHTML = data.map(u => `
+    <div class="user-row">
+      <div><div class="user-email">${u.email||''}</div></div>
+      <div class="user-name-cell">${u.name||'—'}</div>
+      <select class="role-select" onchange="changeRole('${u.id}',this.value)">
+        <option value="child"  ${u.role==='child' ?'selected':''}>🧒 小孩</option>
+        <option value="parent" ${u.role==='parent'?'selected':''}>👨‍👩 家長</option>
+        <option value="admin"  ${u.role==='admin' ?'selected':''}>👑 管理員</option>
+      </select>
+      <button class="del-btn" onclick="deleteUser('${u.id}','${u.email}')">刪除</button>
+    </div>`).join('');
+}
+
+function renderLogs(containerId, logs) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  if (!logs.length) { el.innerHTML='<div class="empty-state">還沒有紀錄，快去為寶貝加點吧！🌟</div>'; return; }
+  el.innerHTML = logs.map(log => {
+    const meta  = KIDS[log.kid] || KIDS.alston;
+    const gCls  = log.giver_role==='admin'?'admin':'parent';
+    const gName = log.giver_role==='admin'?`👑 ${log.giver_name||'管理員'}`:`👨‍👩 ${log.giver_name||'家長'}`;
+    const time  = log.created_at ? new Date(log.created_at).toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
+    return `<div class="log-item ${log.kid}-log">
+      <div class="log-left">
+        <span class="log-emo">${meta.emoji}</span>
+        <span class="log-giver ${gCls}">${gName}</span>
+      </div>
+      <div class="log-body">
+        <div class="log-who">${meta.name}</div>
+        <div class="log-reason">${log.reason||'（未填備注）'}</div>
+        <div class="log-time">${time}</div>
+      </div>
+      <div class="log-delta ${log.delta>0?'pos':'neg'}">${log.delta>0?'+':''}${log.delta}</div>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════
+//  Realtime
+// ════════════════════════════════════════════
+function subscribeRealtime(view, kid) {
+  if (realtimeChannel) { sb.removeChannel(realtimeChannel); realtimeChannel=null; }
+  realtimeChannel = sb.channel('db-changes')
+    .on('postgres_changes', { event:'*', schema:'public', table:'points' }, () => {
+      if (view==='child') loadChildPoints(kid);
+      else loadPoints(view);
+    })
+    .on('postgres_changes', { event:'INSERT', schema:'public', table:'logs' }, () => {
+      if (view==='child') loadLogs('child-history', kid);
+      else if (view==='parent') loadLogs('parent-history', null);
+    })
+    .on('postgres_changes', { event:'*', schema:'public', table:'profiles' }, () => {
+      if (view==='admin') loadUsers();
+    })
+    .subscribe();
+}
+
+// ════════════════════════════════════════════
+//  Actions
+// ════════════════════════════════════════════
+async function addPts(kid, dir, suffix) {
+  if (!currentUser || !currentProfile) return;
+  const sfx    = suffix ? `-${suffix}` : '';
+  const amt    = parseInt(document.getElementById(`amt-${kid}${sfx}`).value)||1;
+  const reason = document.getElementById(`reason-${kid}${sfx}`).value.trim();
+  const delta  = dir * amt;
+
+  // Upsert points
+  const { data: cur } = await sb.from('points').select('total').eq('kid',kid).single();
+  const newTotal = (cur?.total||0) + delta;
+  await sb.from('points').upsert({ kid, total: newTotal });
+
+  // Insert log
+  await sb.from('logs').insert({
+    kid, delta, reason,
+    giver_id:   currentUser.id,
+    giver_name: currentProfile.name,
+    giver_role: currentProfile.role,
+  });
+
+  // Animate
+  const ptEl = document.getElementById(`pts-${kid}${sfx}`);
+  if (ptEl) { ptEl.classList.remove('bump'); void ptEl.offsetWidth; ptEl.classList.add('bump'); }
+  document.getElementById(`reason-${kid}${sfx}`).value = '';
+  toast(`${delta>0?'➕':'➖'} ${KIDS[kid].name} ${delta>0?'+':''}${delta} 點！`);
+}
+
+async function clearLogs() {
+  if (!confirm('確定要清除所有紀錄嗎？點數會保留。')) return;
+  await sb.from('logs').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+  renderLogs('parent-history', []);
+  toast('✅ 紀錄已清除');
+}
+
+async function changeRole(uid, newRole) {
+  await sb.from('profiles').update({ role: newRole }).eq('id', uid);
+  toast('✅ 角色已更新');
+}
+async function deleteUser(uid, email) {
+  if (!confirm(`確定要刪除 ${email} 嗎？`)) return;
+  await sb.from('profiles').delete().eq('id', uid);
+  loadUsers();
+  toast('🗑 使用者已刪除');
+}
+
+function teardown() {
+  if (realtimeChannel) { sb?.removeChannel(realtimeChannel); realtimeChannel=null; }
+  currentUser=null; currentProfile=null;
+}
+
+// ════════════════════════════════════════════
+//  UI helpers
+// ════════════════════════════════════════════
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function getBadge(pts) {
+  if (pts<0)   return '😢 加油！';
+  if (pts<10)  return '🌱 新手';
+  if (pts<30)  return '⭐ 進步中';
+  if (pts<60)  return '🌟 優秀';
+  if (pts<100) return '🏅 超棒';
+  return '🏆 傳奇！';
+}
+function renderStars(el, pts) {
+  if (!el) return;
+  const n = Math.min(Math.max(pts,0),20);
+  el.innerHTML='';
+  for(let i=0;i<n;i++){
+    const s=document.createElement('span');
+    s.className='star-icon';s.textContent='⭐';s.style.animationDelay=`${i*.02}s`;
+    el.appendChild(s);
+  }
+  if(pts>20){
+    const m=document.createElement('span');
+    m.className='star-icon';m.textContent=`+${pts-20}`;
+    m.style.fontSize='.75rem';m.style.color='#888';m.style.alignSelf='center';
+    el.appendChild(m);
+  }
+}
+function setEl(id,val){const e=document.getElementById(id);if(e)e.textContent=val;}
+function v(id){return document.getElementById(id)?.value?.trim()||'';}
+function setLoading(id,on){const e=document.getElementById(id);if(e){e.disabled=on;e.textContent=on?'處理中…':(id.startsWith('login')?'登入':'建立帳號');}}
+let toastTimer;
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2500);
+}
+document.getElementById('login-pw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.getElementById('reg-pw').addEventListener('keydown',  e=>{if(e.key==='Enter')doRegister();});
+</script>
+
+<!--
+════════════════════════════════════════════════════════
+  🚀 SUPABASE 設定教學（約 8 分鐘）
+════════════════════════════════════════════════════════
+
+【第一步】建立 Supabase 專案
+  https://supabase.com → 登入 → New Project
+  輸入名稱、資料庫密碼 → 地區選 Southeast Asia → Create
+
+【第二步】建立資料表（SQL Editor）
+  左側 → SQL Editor → New Query → 貼上以下 SQL → Run：
+
+  -- 使用者資料表
+  create table profiles (
+    id uuid references auth.users on delete cascade primary key,
+    email text, name text, role text default 'child',
+    kid text, created_at timestamptz default now()
+  );
+
+  -- 點數資料表
+  create table points (
+    kid text primary key, total int default 0
+  );
+  insert into points (kid, total) values ('alston', 0), ('kiki', 0);
+
+  -- 紀錄資料表
+  create table logs (
+    id uuid default gen_random_uuid() primary key,
+    kid text, delta int, reason text,
+    giver_id uuid, giver_name text, giver_role text,
+    created_at timestamptz default now()
+  );
+
+  -- 開放讀寫權限（Row Level Security）
+  alter table profiles enable row level security;
+  alter table points   enable row level security;
+  alter table logs     enable row level security;
+
+  create policy "profiles_all" on profiles for all using (true) with check (true);
+  create policy "points_all"   on points   for all using (true) with check (true);
+  create policy "logs_all"     on logs     for all using (true) with check (true);
+
+  -- 開啟 Realtime
+  alter publication supabase_realtime add table points;
+  alter publication supabase_realtime add table logs;
+  alter publication supabase_realtime add table profiles;
+
+【第三步】關閉 Email 確認（方便測試）
+  左側 → Authentication → Providers → Email
+  → 關閉「Confirm email」→ Save
+
+【第四步】取得 API 金鑰
+  左側 → Settings → API
+  複製 Project URL 和 anon public key
+  貼入本檔頂部的 SUPABASE_URL 和 SUPABASE_ANON_KEY
+
+【第五步】設定管理員 Email
+  本檔頂部 ADMIN_EMAIL 填入你的 Email
+  用這個 Email 註冊後自動成為管理員
+
+【第六步】發布到 GitHub Pages
+  GitHub 建立 public repo → 上傳 index.html
+  Settings → Pages → Branch: main → Save
+  網址：https://你的帳號.github.io/repo名稱/
+
+════════════════════════════════════════════════════════
+-->
+</body>
+</html>
