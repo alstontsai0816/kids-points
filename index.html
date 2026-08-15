@@ -238,10 +238,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);min-height:100vh;
         </div>
         <div class="form-group" id="reg-kid-group" style="display:none">
           <label class="form-label">我是哪個小孩？</label>
-          <select class="form-select" id="reg-kid">
-            <option value="alston">Alston 🚀</option>
-            <option value="kiki">Kiki 🌸</option>
-          </select>
+          <select class="form-select" id="reg-kid"></select>
         </div>
         <div class="form-group" id="reg-admin-group" style="display:none">
           <label class="form-label">管理員密碼驗證</label>
@@ -265,36 +262,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);min-height:100vh;
       <button class="tb-btn danger" onclick="doLogout()">登出</button>
     </div>
   </div>
-  <div class="cards-grid">
-    <div class="kid-card alston">
-      <div class="kid-avatar">🚀</div>
-      <div class="kid-name">Alston <span class="badge" id="badge-alston">🌱</span></div>
-      <div class="pts-row"><div class="pts-num" id="pts-alston">0</div><div class="pts-label">點</div></div>
-      <div class="stars-row" id="stars-alston"></div>
-      <div class="controls">
-        <textarea class="reason-input" id="reason-alston" rows="2" placeholder="備注：因為什麼表現？✏️"></textarea>
-        <div class="pt-row">
-          <input class="pt-input" id="amt-alston" type="number" value="1" min="1" max="99">
-          <button class="btn btn-add" onclick="addPts('alston',1)">➕ 加點</button>
-          <button class="btn btn-sub" onclick="addPts('alston',-1)">➖ 減點</button>
-        </div>
-      </div>
-    </div>
-    <div class="kid-card kiki">
-      <div class="kid-avatar">🌸</div>
-      <div class="kid-name">Kiki <span class="badge" id="badge-kiki">🌱</span></div>
-      <div class="pts-row"><div class="pts-num" id="pts-kiki">0</div><div class="pts-label">點</div></div>
-      <div class="stars-row" id="stars-kiki"></div>
-      <div class="controls">
-        <textarea class="reason-input" id="reason-kiki" rows="2" placeholder="備注：因為什麼表現？✏️"></textarea>
-        <div class="pt-row">
-          <input class="pt-input" id="amt-kiki" type="number" value="1" min="1" max="99">
-          <button class="btn btn-add" onclick="addPts('kiki',1)">➕ 加點</button>
-          <button class="btn btn-sub" onclick="addPts('kiki',-1)">➖ 減點</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <div class="cards-grid" id="parent-cards"></div>
   <div class="history-wrap">
     <div class="history-card">
       <div class="section-title">📋 紀錄歷史</div>
@@ -343,41 +311,26 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);min-height:100vh;
   </div>
   <div class="admin-wrap">
     <div class="section-title">👑 管理員後台</div>
-    <div class="admin-stats">
+    <div class="admin-stats" id="admin-stats">
       <div class="stat-card"><div class="stat-num" id="stat-users">0</div><div class="stat-label">總帳號數</div></div>
-      <div class="stat-card"><div class="stat-num" id="stat-alston" style="color:var(--alston)">0</div><div class="stat-label">Alston 點數</div></div>
-      <div class="stat-card"><div class="stat-num" id="stat-kiki"   style="color:var(--kiki)">0</div><div class="stat-label">Kiki 點數</div></div>
     </div>
 
     <div class="section-title">🎯 調整點數</div>
-    <div class="cards-grid" style="margin-bottom:28px;">
-      <div class="kid-card alston">
-        <div class="kid-avatar">🚀</div>
-        <div class="kid-name">Alston <span class="badge" id="badge-alston-a">🌱</span></div>
-        <div class="pts-row"><div class="pts-num" id="pts-alston-a">0</div><div class="pts-label">點</div></div>
-        <div class="stars-row" id="stars-alston-a"></div>
-        <div class="controls">
-          <textarea class="reason-input" id="reason-alston-a" rows="2" placeholder="備注：因為什麼表現？✏️"></textarea>
-          <div class="pt-row">
-            <input class="pt-input" id="amt-alston-a" type="number" value="1" min="1" max="99">
-            <button class="btn btn-add" onclick="addPts('alston',1,'a')">➕ 加點</button>
-            <button class="btn btn-sub" onclick="addPts('alston',-1,'a')">➖ 減點</button>
-          </div>
+    <div class="cards-grid" id="admin-cards" style="margin-bottom:28px;"></div>
+
+    <div class="section-title">👶 管理小孩</div>
+    <div style="background:var(--card);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:28px;">
+      <div id="kid-list-admin" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;border-top:2px solid var(--border);padding-top:16px;">
+        <div style="flex:1;min-width:120px;">
+          <label class="form-label">小孩名字</label>
+          <input class="form-input" id="new-kid-name" type="text" placeholder="例如：小明">
         </div>
-      </div>
-      <div class="kid-card kiki">
-        <div class="kid-avatar">🌸</div>
-        <div class="kid-name">Kiki <span class="badge" id="badge-kiki-a">🌱</span></div>
-        <div class="pts-row"><div class="pts-num" id="pts-kiki-a">0</div><div class="pts-label">點</div></div>
-        <div class="stars-row" id="stars-kiki-a"></div>
-        <div class="controls">
-          <textarea class="reason-input" id="reason-kiki-a" rows="2" placeholder="備注：因為什麼表現？✏️"></textarea>
-          <div class="pt-row">
-            <input class="pt-input" id="amt-kiki-a" type="number" value="1" min="1" max="99">
-            <button class="btn btn-add" onclick="addPts('kiki',1,'a')">➕ 加點</button>
-            <button class="btn btn-sub" onclick="addPts('kiki',-1,'a')">➖ 減點</button>
-          </div>
+        <div style="flex:0;min-width:80px;">
+          <label class="form-label">頭像</label>
+          <input class="form-input" id="new-kid-emoji" type="text" placeholder="🌟" maxlength="2" style="text-align:center;font-size:1.3rem;">
         </div>
+        <button class="btn btn-add" style="flex:0;padding:11px 20px;white-space:nowrap;margin-bottom:0;" onclick="addKid()">➕ 新增小孩</button>
       </div>
     </div>
 
@@ -430,10 +383,15 @@ function defaultDB() {
       { id:'u4', name:'Kiki',   pw: hashPw('kiki123'),   role:'child',  kid:'kiki' },
       { id:'u5', name:'管理員', pw: hashPw('admin1234'), role:'admin',  kid:null },
     ],
+    kids: [
+      { id:'alston', name:'Alston', emoji:'🚀', colorIdx:0 },
+      { id:'kiki',   name:'Kiki',   emoji:'🌸', colorIdx:1 },
+    ],
     points: { alston: 0, kiki: 0 },
     logs: [],
     adminCode: hashPw('admin1234'),
-    nextId: 6
+    nextId: 6,
+    nextKidId: 3
   };
 }
 
@@ -473,7 +431,10 @@ function restoreSession() {
 //  Boot
 // ══════════════════════════════════════════════
 if (restoreSession()) {
+  populateKidSelect();
   routeToDashboard(currentUser);
+} else {
+  populateKidSelect();
 }
 
 // ══════════════════════════════════════════════
@@ -577,64 +538,114 @@ function doLogout() {
 }
 
 // ══════════════════════════════════════════════
+//  Kid card HTML builder
+// ══════════════════════════════════════════════
+function buildKidCard(kidData, pts, suffix) {
+  const sfx   = suffix ? `-${suffix}` : '';
+  const id    = kidData.id;
+  const p     = KID_COLORS[kidData.colorIdx % KID_COLORS.length];
+  const color = p.color, light = p.light, dark = p.dark;
+  const emoji = kidData.emoji || '⭐';
+  const name  = kidData.name;
+  return `
+  <div class="kid-card" style="border-color:${light}">
+    <div style="position:absolute;top:0;left:0;right:0;height:5px;border-radius:20px 20px 0 0;background:${color};"></div>
+    <div class="kid-avatar" style="background:${light}">${emoji}</div>
+    <div class="kid-name" style="color:${color}">${name}
+      <span class="badge" id="badge-${id}${sfx}" style="background:${light};color:${dark}">${getBadge(pts)}</span>
+    </div>
+    <div class="pts-row">
+      <div class="pts-num" id="pts-${id}${sfx}" style="color:${color}">${pts}</div>
+      <div class="pts-label">點</div>
+    </div>
+    <div class="stars-row" id="stars-${id}${sfx}"></div>
+    <div class="controls">
+      <textarea class="reason-input" id="reason-${id}${sfx}" rows="2"
+        placeholder="備注：因為什麼表現？✏️"
+        onfocus="this.style.borderColor='${color}'" onblur="this.style.borderColor=''"></textarea>
+      <div class="pt-row">
+        <input class="pt-input" id="amt-${id}${sfx}" type="number" value="1" min="1" max="99">
+        <button class="btn btn-add" onclick="addPts('${id}',1,'${suffix||''}')">➕ 加點</button>
+        <button class="btn btn-sub" onclick="addPts('${id}',-1,'${suffix||''}')">➖ 減點</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function populateKidSelect() {
+  const db  = loadDB();
+  const sel = document.getElementById('reg-kid');
+  if (!sel) return;
+  sel.innerHTML = getKids(db).map(k => `<option value="${k.id}">${k.emoji||'⭐'} ${k.name}</option>`).join('');
+}
+
+// ══════════════════════════════════════════════
 //  Render parent dashboard
 // ══════════════════════════════════════════════
 function renderParent() {
-  const db = loadDB();
+  const db   = loadDB();
+  const kids = getKids(db);
   document.getElementById('parent-chip').textContent = `👋 ${currentUser.name}`;
-  ['alston','kiki'].forEach(kid => {
-    const pts = db.points[kid] || 0;
-    document.getElementById(`pts-${kid}`).textContent    = pts;
-    document.getElementById(`badge-${kid}`).textContent  = getBadge(pts);
-    renderStars(document.getElementById(`stars-${kid}`), pts);
-  });
-  renderLogs('parent-history', null, db.logs);
+  const grid = document.getElementById('parent-cards');
+  grid.innerHTML = kids.map(k => buildKidCard(k, db.points[k.id]||0, '')).join('');
+  kids.forEach(k => renderStars(document.getElementById(`stars-${k.id}`), db.points[k.id]||0));
+  renderLogs('parent-history', null, db.logs, db);
 }
 
 // ══════════════════════════════════════════════
 //  Render child dashboard
 // ══════════════════════════════════════════════
 function renderChild() {
-  const db  = loadDB();
-  const kid = currentUser.kid || 'alston';
-  const meta = KIDS[kid];
-  const pts  = db.points[kid] || 0;
-
-  document.getElementById('child-chip').textContent    = `👋 ${currentUser.name}`;
-  document.getElementById('child-avatar').textContent   = meta.emoji;
+  const db    = loadDB();
+  const kidId = currentUser.kid || getKids(db)[0]?.id || 'alston';
+  const meta  = getKidMeta(kidId, db);
+  const pts   = db.points[kidId] || 0;
+  document.getElementById('child-chip').textContent       = `👋 ${currentUser.name}`;
+  document.getElementById('child-avatar').textContent      = meta.emoji;
   document.getElementById('child-avatar').style.background = meta.light;
-  document.getElementById('child-name').textContent     = meta.name;
-  document.getElementById('child-name').style.color     = meta.color;
-  document.getElementById('child-pts').textContent      = pts;
-  document.getElementById('child-pts').style.color      = meta.color;
-  document.getElementById('child-badge').textContent    = getBadge(pts);
-  document.getElementById('child-badge').style.background = meta.light;
-  document.getElementById('child-badge').style.color    = meta.color;
+  document.getElementById('child-name').textContent        = meta.name;
+  document.getElementById('child-name').style.color        = meta.color;
+  document.getElementById('child-pts').textContent         = pts;
+  document.getElementById('child-pts').style.color         = meta.color;
+  document.getElementById('child-badge').textContent       = getBadge(pts);
+  document.getElementById('child-badge').style.background  = meta.light;
+  document.getElementById('child-badge').style.color       = meta.color;
   renderStars(document.getElementById('child-stars'), pts);
-  renderLogs('child-history', kid, db.logs);
+  renderLogs('child-history', kidId, db.logs, db);
 }
 
 // ══════════════════════════════════════════════
 //  Render admin dashboard
 // ══════════════════════════════════════════════
 function renderAdmin() {
-  const db = loadDB();
+  const db   = loadDB();
+  const kids = getKids(db);
   // Stats
-  document.getElementById('stat-users').textContent   = db.users.length;
-  document.getElementById('stat-alston').textContent  = db.points.alston || 0;
-  document.getElementById('stat-kiki').textContent    = db.points.kiki   || 0;
-  // Points cards
-  ['alston','kiki'].forEach(kid => {
-    const pts = db.points[kid] || 0;
-    document.getElementById(`pts-${kid}-a`).textContent   = pts;
-    document.getElementById(`badge-${kid}-a`).textContent = getBadge(pts);
-    renderStars(document.getElementById(`stars-${kid}-a`), pts);
-  });
+  const statsEl = document.getElementById('admin-stats');
+  statsEl.innerHTML = `<div class="stat-card"><div class="stat-num">${db.users.length}</div><div class="stat-label">總帳號數</div></div>`
+    + kids.map(k => {
+        const p = KID_COLORS[k.colorIdx % KID_COLORS.length];
+        return `<div class="stat-card"><div class="stat-num" style="color:${p.color}">${db.points[k.id]||0}</div><div class="stat-label">${k.name} 點數</div></div>`;
+      }).join('');
+  // Kid cards
+  const adminCards = document.getElementById('admin-cards');
+  adminCards.innerHTML = kids.map(k => buildKidCard(k, db.points[k.id]||0, 'a')).join('');
+  kids.forEach(k => renderStars(document.getElementById(`stars-${k.id}-a`), db.points[k.id]||0));
+  // Kid management chips
+  const kidListEl = document.getElementById('kid-list-admin');
+  kidListEl.innerHTML = kids.length ? kids.map(k => {
+    const p = KID_COLORS[k.colorIdx % KID_COLORS.length];
+    return `<span style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:99px;background:${p.light};color:${p.color};font-weight:800;font-size:.88rem;">
+      ${k.emoji||'⭐'} ${k.name}
+      <button onclick="removeKid('${k.id}')" style="border:none;background:none;cursor:pointer;color:${p.dark};font-size:.9rem;padding:0 2px;">✕</button>
+    </span>`;
+  }).join('') : '<span style="color:var(--muted);font-size:.88rem;font-weight:600;">尚無小孩</span>';
   // User list
   const list = document.getElementById('user-list');
-  list.innerHTML = db.users.map(u => `
-    <div class="user-row">
-      <div><div class="user-email">${u.name}</div><div class="user-sub">${u.role==='child'?`小孩 (${u.kid||'?'})`:'—'}</div></div>
+  list.innerHTML = db.users.map(u => {
+    const kidLabel = u.role==='child' ? (getKidMeta(u.kid, db).name||u.kid||'?') : '—';
+    return `<div class="user-row">
+      <div><div class="user-email">${u.name}</div><div class="user-sub">${u.role==='child'?`🧒 ${kidLabel}`:''}</div></div>
       <div class="user-sub">${{admin:'👑 管理員',parent:'👨‍👩 家長',child:'🧒 小孩'}[u.role]||u.role}</div>
       <select class="role-select" onchange="changeRole('${u.id}',this.value)">
         <option value="parent" ${u.role==='parent'?'selected':''}>👨‍👩 家長</option>
@@ -642,7 +653,8 @@ function renderAdmin() {
         <option value="admin"  ${u.role==='admin' ?'selected':''}>👑 管理員</option>
       </select>
       <button class="del-btn" onclick="deleteUser('${u.id}')">刪除</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 // ══════════════════════════════════════════════
@@ -654,33 +666,24 @@ function addPts(kid, dir, suffix) {
   const amt    = parseInt(document.getElementById(`amt-${kid}${sfx}`).value) || 1;
   const reason = document.getElementById(`reason-${kid}${sfx}`).value.trim();
   const delta  = dir * amt;
-
-  const db = loadDB();
+  const db     = loadDB();
   db.points[kid] = (db.points[kid] || 0) + delta;
   const now  = new Date();
-  const time = now.toLocaleDateString('zh-TW') + ' ' + now.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+  const time = now.toLocaleDateString('zh-TW')+' '+now.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
   db.logs.push({ kid, delta, reason, time, ts: Date.now(), giverName: currentUser.name, giverRole: currentUser.role });
   saveDB(db);
-
-  // Animate
   const el = document.getElementById(`pts-${kid}${sfx}`);
   if (el) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
   document.getElementById(`reason-${kid}${sfx}`).value = '';
-
-  // Re-render current page
-  if (currentUser.role === 'admin')  renderAdmin();
-  else                               renderParent();
-
-  toast(`${delta>0?'➕':'➖'} ${KIDS[kid].name} ${delta>0?'+':''}${delta} 點！`);
+  if (currentUser.role === 'admin') renderAdmin(); else renderParent();
+  const meta = getKidMeta(kid, db);
+  toast(`${delta>0?'➕':'➖'} ${meta.name} ${delta>0?'+':''}${delta} 點！`);
 }
 
 function clearLogs() {
   if (!confirm('確定要清除所有紀錄嗎？點數會保留。')) return;
-  const db = loadDB();
-  db.logs = [];
-  saveDB(db);
-  if (currentUser.role === 'admin') renderAdmin();
-  else renderParent();
+  const db = loadDB(); db.logs = []; saveDB(db);
+  if (currentUser.role === 'admin') renderAdmin(); else renderParent();
   toast('✅ 紀錄已清除');
 }
 
@@ -688,55 +691,90 @@ function clearLogs() {
 //  Admin operations
 // ══════════════════════════════════════════════
 function changeRole(uid, newRole) {
-  const db   = loadDB();
-  const user = db.users.find(u => u.id === uid);
+  const db = loadDB(), user = db.users.find(u => u.id === uid);
   if (user) { user.role = newRole; saveDB(db); renderAdmin(); toast('✅ 角色已更新'); }
 }
 function deleteUser(uid) {
-  const db   = loadDB();
-  const user = db.users.find(u => u.id === uid);
+  const db = loadDB(), user = db.users.find(u => u.id === uid);
   if (!user) return;
   if (!confirm(`確定要刪除「${user.name}」嗎？`)) return;
   db.users = db.users.filter(u => u.id !== uid);
-  saveDB(db);
-  renderAdmin();
-  toast('🗑 使用者已刪除');
+  saveDB(db); renderAdmin(); toast('🗑 使用者已刪除');
 }
 function changeAdminCode() {
   const newCode = document.getElementById('new-admin-code').value;
   if (!newCode || newCode.length < 4) { toast('❌ 驗證碼至少 4 個字元'); return; }
-  const db = loadDB();
-  db.adminCode = hashPw(newCode);
-  saveDB(db);
+  const db = loadDB(); db.adminCode = hashPw(newCode); saveDB(db);
   document.getElementById('new-admin-code').value = '';
   toast('✅ 管理員驗證碼已更新');
+}
+function addKid() {
+  const name  = document.getElementById('new-kid-name').value.trim();
+  const emoji = document.getElementById('new-kid-emoji').value.trim() || '⭐';
+  if (!name) { toast('❌ 請輸入小孩名字'); return; }
+  const db  = loadDB();
+  db.kids   = db.kids || [];
+  if (db.kids.find(k => k.name === name)) { toast('❌ 此名字已存在'); return; }
+  const id  = 'kid_' + ((db.nextKidId = (db.nextKidId||3) + 1));
+  db.kids.push({ id, name, emoji, colorIdx: db.kids.length });
+  db.points[id] = 0;
+  saveDB(db);
+  document.getElementById('new-kid-name').value  = '';
+  document.getElementById('new-kid-emoji').value = '';
+  populateKidSelect();
+  renderAdmin();
+  toast(`✅ 已新增：${emoji} ${name}`);
+}
+function removeKid(kidId) {
+  const db      = loadDB();
+  const kidData = (db.kids||[]).find(k => k.id === kidId);
+  if (!kidData) return;
+  if (!confirm(`確定要移除「${kidData.name}」嗎？`)) return;
+  db.kids = db.kids.filter(k => k.id !== kidId);
+  saveDB(db); populateKidSelect(); renderAdmin();
+  toast(`🗑 已移除：${kidData.name}`);
 }
 
 // ══════════════════════════════════════════════
 //  Render helpers
 // ══════════════════════════════════════════════
-const KIDS = {
-  alston: { emoji:'🚀', name:'Alston', color:'var(--alston)', light:'var(--alston-l)' },
-  kiki:   { emoji:'🌸', name:'Kiki',   color:'var(--kiki)',   light:'var(--kiki-l)'   },
-};
+// Kid colors pool
+const KID_COLORS = [
+  { color:'#FF6B35', light:'#FFE8DF', dark:'#D94F1A' },
+  { color:'#9B5DE5', light:'#EFE6FF', dark:'#7A3EC4' },
+  { color:'#0EA5E9', light:'#E0F2FE', dark:'#0369A1' },
+  { color:'#10B981', light:'#D1FAE5', dark:'#065F46' },
+  { color:'#F59E0B', light:'#FEF3C7', dark:'#92400E' },
+  { color:'#EC4899', light:'#FCE7F3', dark:'#9D174D' },
+];
 
-function renderLogs(containerId, filterKid, logs) {
+function getKidMeta(kid, db) {
+  const kidData = (db.kids||[]).find(k => k.id === kid);
+  if (!kidData) return { emoji:'⭐', name:kid, color:'#888', light:'#eee', dark:'#555' };
+  const palette = KID_COLORS[kidData.colorIdx % KID_COLORS.length];
+  return { emoji: kidData.emoji||'⭐', name: kidData.name, ...palette };
+}
+
+function getKids(db) { return db.kids || []; }
+
+function renderLogs(containerId, filterKid, logs, db) {
   const el = document.getElementById(containerId);
   if (!el) return;
+  db = db || loadDB();
   let filtered = [...logs].reverse();
   if (filterKid) filtered = filtered.filter(l => l.kid === filterKid);
   if (!filtered.length) { el.innerHTML='<div class="empty-state">還沒有紀錄，快去為寶貝加點吧！🌟</div>'; return; }
   el.innerHTML = filtered.map(log => {
-    const meta = KIDS[log.kid] || KIDS.alston;
+    const meta = getKidMeta(log.kid, db);
     const giverCls   = log.giverRole==='admin'?'admin':'parent';
     const giverLabel = log.giverRole==='admin'?`👑 ${log.giverName}`:`👨‍👩 ${log.giverName}`;
-    return `<div class="log-item ${log.kid}-log">
+    return `<div class="log-item" style="background:${meta.light}">
       <div class="log-left">
         <span class="log-emo">${meta.emoji}</span>
         <span class="log-giver ${giverCls}">${giverLabel}</span>
       </div>
       <div class="log-body">
-        <div class="log-who">${meta.name}</div>
+        <div class="log-who" style="color:${meta.dark}">${meta.name}</div>
         <div class="log-reason">${log.reason||'（未填備注）'}</div>
         <div class="log-time">${log.time}</div>
       </div>
